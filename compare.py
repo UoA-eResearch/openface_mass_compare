@@ -36,6 +36,7 @@ from bottle import *
 BaseRequest.MEMFILE_MAX = 1e8
 import glob
 import pickle
+import json
 
 modelDir = os.path.join('/root/openface', 'models')
 dlibModelDir = os.path.join(modelDir, 'dlib')
@@ -89,6 +90,23 @@ else:
     with open(picklefile, 'wb') as f:
         pickle.dump(reps, f)
 
+with open('data.json') as f:
+  data = json.load(f)
+
+data_dict = {}
+
+for d in data['profiles']:
+  data_dict[d['upi']] = d
+
+@get('/')
+def default_get():
+  return "POST me an image to get the closest match: e.g. time curl localhost:8080 --data-binary @image.jpg -vv\n"
+
+@get('/<uid>')
+def get_face(uid):
+  f = glob.glob("images/{}/*".format(uid))
+  return static_file(f[0], '.')
+
 @post('/')
 def compare_image():
   img_array = np.asarray(bytearray(request.body.read()), dtype=np.uint8)
@@ -96,13 +114,13 @@ def compare_image():
   image_data = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
   if image_data is None:
     print("Unable to decode posted image!")
-    return "error"
+    abort(500, "Unable to decode posted image")
   try:
     start = time.time()
     rep = getRep(image_data)
     print("Got face representation in {} seconds".format(time.time() - start))
   except:
-    return "error"
+    abort(500, "No face detected")
   ids_to_compare = request.params.get('ids_to_compare', reps.keys())
   best = 4
   bestUid = "unknown"
@@ -112,7 +130,7 @@ def compare_image():
       if dot < best:
           best = dot
           bestUid = i
-  return {"uid": bestUid, "confidence": best}
+  return {"uid": bestUid, "confidence": 1 - best/4, "data": data_dict[bestUid]}
 
 port = int(os.environ.get('PORT', 8080))
 
