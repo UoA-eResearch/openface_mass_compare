@@ -45,7 +45,7 @@ openfaceModelDir = os.path.join(modelDir, 'openface')
 align = openface.AlignDlib(os.path.join(dlibModelDir, "shape_predictor_68_face_landmarks.dat"))
 net = openface.TorchNeuralNet(os.path.join(openfaceModelDir, 'nn4.small2.v1.t7'), 96)
 
-picklefile = "data.pickle"
+picklefile = "/root/data/data.pickle"
 
 def loadImageFromFile(imgPath):
     bgrImg = cv2.imread(imgPath)
@@ -74,7 +74,7 @@ if os.path.isfile(picklefile):
 else:
     reps = {}
 
-    g = glob.glob("images/*/*")
+    g = glob.glob("/root/data/images/*/*")
 
     start = time.time()
 
@@ -90,7 +90,7 @@ else:
     with open(picklefile, 'wb') as f:
         pickle.dump(reps, f)
 
-with open('data.json') as f:
+with open('/root/data/data.json') as f:
   data = json.load(f)
 
 data_dict = {}
@@ -104,7 +104,7 @@ def default_get():
 
 @get('/<uid>')
 def get_face(uid):
-  f = glob.glob("images/{}/*".format(uid))
+  f = glob.glob("/root/data/images/{}/*".format(uid))
   return static_file(f[0], '.')
 
 @post('/')
