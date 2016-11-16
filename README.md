@@ -17,3 +17,8 @@ The first time you run this, it'll create a 2D matrix, where each element is an 
 Once it's done, it'll save the result to data.pickle, for faster startup next time. For a dataset of 3000 images building this pickle file takes ~13 minutes  
 To test, run  
 `time curl localhost:8000 --data-binary @image.jpg -vv`  
+
+
+# Credits
+
+Adapted from https://github.com/cmusatyalab/openface/blob/master/demos/compare.py which is licenced under the Apache License, Version 2.0 and Copyright 2015-2016 Carnegie Mellon University  
