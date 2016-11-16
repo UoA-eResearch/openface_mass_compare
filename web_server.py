@@ -21,74 +21,18 @@
 # To test:
 # time curl localhost:8080 --data-binary @image.jpg -vv
 
-import time
-import argparse
-import cv2
-import itertools
-import os
+from util import *
 
 import numpy as np
 np.set_printoptions(precision=2)
 
-import openface
-
 from bottle import *
 BaseRequest.MEMFILE_MAX = 1e8
-import glob
-import pickle
-import json
 
-modelDir = os.path.join('/root/openface', 'models')
-dlibModelDir = os.path.join(modelDir, 'dlib')
-openfaceModelDir = os.path.join(modelDir, 'openface')
-
-align = openface.AlignDlib(os.path.join(dlibModelDir, "shape_predictor_68_face_landmarks.dat"))
-net = openface.TorchNeuralNet(os.path.join(openfaceModelDir, 'nn4.small2.v1.t7'), 96)
-
-picklefile = "/root/data/data.pickle"
-
-def loadImageFromFile(imgPath):
-    bgrImg = cv2.imread(imgPath)
-    if bgrImg is None:
-        raise Exception("Unable to load image: {}".format(imgPath))
-    return getRep(bgrImg)
-
-def getRep(bgrImg):
-    rgbImg = cv2.cvtColor(bgrImg, cv2.COLOR_BGR2RGB)
-    bb = align.getLargestFaceBoundingBox(rgbImg)
-    if bb is None:
-        raise Exception("Unable to find a face")
-    alignedFace = align.align(96, rgbImg, bb,
-                              landmarkIndices=openface.AlignDlib.OUTER_EYES_AND_NOSE)
-    if alignedFace is None:
-        raise Exception("Unable to align image")
-    rep = net.forward(alignedFace)
-    return rep
-
-if os.path.isfile(picklefile):
-    with open(picklefile) as f:
-        start = time.time()
-        reps = pickle.load(f)
-        print("Loaded stored pickle, took {}".format(time.time() - start))
-
-else:
-    reps = {}
-
-    g = glob.glob("/root/data/images/*/*")
-
+with open("/root/data/data.pickle") as f:
     start = time.time()
-
-    for f in g:
-        uid = os.path.splitext(os.path.basename(f))[0]
-        try:
-            reps[uid] = loadImageFromFile(f)
-        except:
-            pass
-
-    print("Loaded {}/{} refs, took {} seconds.".format(len(reps), len(g), time.time() - start))
-
-    with open(picklefile, 'wb') as f:
-        pickle.dump(reps, f)
+    reps = pickle.load(f)
+    print("Loaded stored pickle, took {}".format(time.time() - start))
 
 with open('/root/data/data.json') as f:
   data = json.load(f)
