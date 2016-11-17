@@ -15,7 +15,7 @@ openfaceModelDir = os.path.join(modelDir, 'openface')
 align = openface.AlignDlib(os.path.join(dlibModelDir, "shape_predictor_68_face_landmarks.dat"))
 net = openface.TorchNeuralNet(os.path.join(openfaceModelDir, 'nn4.small2.v1.t7'), 96)
 
-def getRep(bgrImg):
+def getRep(bgrImg, align=align, net=net):
     rgbImg = cv2.cvtColor(bgrImg, cv2.COLOR_BGR2RGB)
     bb = align.getLargestFaceBoundingBox(rgbImg)
     if bb is None:
