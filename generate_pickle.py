@@ -11,7 +11,7 @@ def init():
 
 def loadImageFromFile(imgPath):
     global align, net
-    uid = os.path.split(os.path.split(s)[0])[-1]
+    uid = os.path.split(os.path.split(imgPath)[0])[-1]
     bgrImg = cv2.imread(imgPath)
     if bgrImg is None:
         print("Unable to load image: {}".format(imgPath))
