@@ -4,7 +4,8 @@ An openface script that runs a REST server. Posted images are compared against a
 ## Setup
 
 Create a folder called "images". Create a folder for each person, and place at least one image for each person in their folder  
-Add a file called "data.json" containing additional information about each person in the same folder as this script
+Optionally, add a file called "data.json" containing additional information about each person in the same folder as this script  
+This folder containing your images directory and data.json should be mounted into the container as /root/data when you run the below docker run command in this directory  
 
 ## Installation
 

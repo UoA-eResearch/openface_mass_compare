@@ -34,51 +34,64 @@ with open("/root/data/data.pickle") as f:
     reps = pickle.load(f)
     print("Loaded stored pickle, took {}".format(time.time() - start))
 
-with open('/root/data/data.json') as f:
-  data = json.load(f)
-
 data_dict = {}
 
-for d in data['profiles']:
-  data_dict[d['upi']] = d
+try:
+    with open('/root/data/data.json') as f:
+        data = json.load(f)
+
+    if type(data) is dict:
+        data_dict = data
+    else:
+        for d in data['profiles']:
+            data_dict[d['upi']] = d
+except Exception as e:
+    print("Unable to load data.json: " + e)
 
 @get('/')
 def default_get():
-  return "POST me an image to get the closest match: e.g. time curl localhost:8080 --data-binary @image.jpg -vv\n"
+    return "POST me an image to get the closest match: e.g. time curl localhost:8080 --data-binary @image.jpg -vv\n"
 
 @get('/<uid>')
 def get_face(uid):
-  f = glob.glob("/root/data/images/{}/*".format(uid))
-  return static_file(f[0], '.')
+    f = glob.glob("/root/data/images/{}/*".format(uid))
+    return static_file(f[0], '.')
 
 @post('/')
 def compare_image():
-  img_array = np.asarray(bytearray(request.body.read()), dtype=np.uint8)
-  print("recieved image of size {}".format(len(img_array)))
-  image_data = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
-  if image_data is None:
-    print("Unable to decode posted image!")
-    abort(500, "Unable to decode posted image")
-  try:
-    start = time.time()
-    rep = getRep(image_data)
-    print("Got face representation in {} seconds".format(time.time() - start))
-  except:
-    abort(500, "No face detected")
-  ids_to_compare = request.params.get('ids_to_compare', reps.keys())
-  best = 4
-  bestUid = "unknown"
-  for i in ids_to_compare:
-      d = rep - reps[i]
-      dot = np.dot(d,d)
-      if dot < best:
-          best = dot
-          bestUid = i
-  return {"uid": bestUid, "confidence": 1 - best/4, "data": data_dict[bestUid]}
+    response.content_type = 'application/json'
+
+    img_array = np.asarray(bytearray(request.body.read()), dtype=np.uint8)
+    print("recieved image of size {}".format(len(img_array)))
+    image_data = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+    if image_data is None:
+        print("Unable to decode posted image!")
+        response.status = 500
+        return json.dumps({'error': 'Unable to decode posted image!'})
+    try:
+        start = time.time()
+        rep = getRep(image_data)
+        print("Got face representation in {} seconds".format(time.time() - start))
+    except:
+        response.status = 500
+        return json.dumps({'error': 'No face detected'})
+    ids_to_compare = request.params.get('ids_to_compare', reps.keys())
+    best = 4
+    bestUid = "unknown"
+    for i in ids_to_compare:
+        if type(reps[i]) is not list:
+            reps[i] = [reps[i]]
+        for r in reps[i]:
+            d = rep - r
+            dot = np.dot(d,d)
+            if dot < best:
+                best = dot
+                bestUid = i
+    return {"uid": bestUid, "confidence": 1 - best/4, "data": data_dict.get(bestUid)}
 
 port = int(os.environ.get('PORT', 8080))
 
 if __name__ == "__main__":
-  run(host='0.0.0.0', port=port, debug=True, server='gunicorn', workers=4)
+    run(host='0.0.0.0', port=port, debug=True, server='gunicorn', workers=4)
 
 app = default_app()
