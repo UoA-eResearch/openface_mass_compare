@@ -40,11 +40,11 @@ try:
     with open('/root/data/data.json') as f:
         data = json.load(f)
 
-    if type(data) is dict:
-        data_dict = data
-    else:
+    if 'profiles' in data:
         for d in data['profiles']:
             data_dict[d['upi']] = d
+    else:
+        data_dict = data
 except Exception as e:
     print("Unable to load data.json: " + e)
 
