@@ -12,10 +12,12 @@ This folder containing your images directory and data.json should be mounted int
 `sudo su`  
 `apt-get install docker`  
 `docker pull uoacer/openface-mass-compare`  
-``docker run --name=omc --restart=always --detach=true --volume="`pwd`:/root/data" --publish="8000:8000" uoacer/openface-mass-compare``  
+``docker run --name=omc --restart=always --detach=true --volume="`pwd`:/root/data" --publish="8000:8000" --net=host uoacer/openface-mass-compare``  
 The volume command mounts the real directory on the left of the colon to the /root/data directory in the container  
 The first time you run this, it'll create a 2D matrix, where each element is an image from the images folder, processed by the Torch7 network  
 Once it's done, it'll save the result to data.pickle, for faster startup next time. For a dataset of 3678 images building this pickle file takes ~6.8 minutes  
+To view the logs, run the command  
+`docker logs -f omc`  
 To test, run  
 `time curl localhost:8000 --data-binary @image.jpg -vv`  
 
