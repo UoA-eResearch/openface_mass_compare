@@ -59,22 +59,21 @@ def get_face(uid):
 
 @post('/')
 def compare_image():
-    response.content_type = 'application/json'
-
     img_array = np.asarray(bytearray(request.body.read()), dtype=np.uint8)
     print("recieved image of size {}".format(len(img_array)))
     image_data = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
     if image_data is None:
         print("Unable to decode posted image!")
         response.status = 500
-        return json.dumps({'error': 'Unable to decode posted image!'})
+        return {'error': 'Unable to decode posted image!'}
     try:
         start = time.time()
         rep = getRep(image_data)
         print("Got face representation in {} seconds".format(time.time() - start))
-    except:
+    except Exception as e:
+        print("Error: {}".format(e))
         response.status = 500
-        return json.dumps({'error': 'No face detected'})
+        return {'error': str(e)}
     ids_to_compare = request.params.get('ids_to_compare', reps.keys())
     best = 4
     bestUid = "unknown"
