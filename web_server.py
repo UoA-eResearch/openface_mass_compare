@@ -55,7 +55,7 @@ def default_get():
 @get('/<uid>')
 def get_face(uid):
     f = glob.glob("/root/data/images/{}/*".format(uid))
-    return static_file(f[0], '.')
+    return static_file(f[0], '/')
 
 @post('/')
 def compare_image():
