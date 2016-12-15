@@ -50,7 +50,7 @@ except Exception as e:
 
 @get('/')
 def default_get():
-    return "POST me an image to get the closest match: e.g. time curl localhost:8080 --data-binary @image.jpg -vv\n"
+    return static_file("index.html", ".")
 
 @get('/<uid>')
 def get_face(uid):
@@ -59,7 +59,12 @@ def get_face(uid):
 
 @post('/')
 def compare_image():
-    img_array = np.asarray(bytearray(request.body.read()), dtype=np.uint8)
+    if request.files.get('pic'):
+        binary_data = request.files.get('pic').file.read()
+    else:
+        binary_data = request.body.read()
+
+    img_array = np.asarray(bytearray(binary_data), dtype=np.uint8)
     print("recieved image of size {}".format(len(img_array)))
     image_data = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
     if image_data is None:
