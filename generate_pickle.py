@@ -23,7 +23,7 @@ def loadImageFromFile(imgPath):
         return
     return (uid, rep)
 
-PROCESSES = cpu_count() / 2
+PROCESSES = cpu_count() / 2 + 1
 p = Pool(processes=PROCESSES, initializer=init)
 g = glob.glob("/root/data/images/*/*")
 
