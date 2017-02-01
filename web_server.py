@@ -46,7 +46,7 @@ try:
     else:
         data_dict = data
 except Exception as e:
-    print("Unable to load data.json: " + e)
+    print("Unable to load data.json: ", e)
 
 @get('/')
 def default_get():
