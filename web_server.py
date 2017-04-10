@@ -42,7 +42,8 @@ try:
 
     if 'profiles' in data:
         for d in data['profiles']:
-            data_dict[d['upi']] = d
+            if 'upi' in d:
+                data_dict[d['upi']] = d
     else:
         data_dict = data
 except Exception as e:
