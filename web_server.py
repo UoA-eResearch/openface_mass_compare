@@ -23,31 +23,8 @@
 
 from util import *
 
-import numpy as np
-np.set_printoptions(precision=2)
-
 from bottle import *
 BaseRequest.MEMFILE_MAX = 1e8
-
-with open("/root/data/data.pickle") as f:
-    start = time.time()
-    reps = pickle.load(f)
-    print("Loaded stored pickle, took {}".format(time.time() - start))
-
-data_dict = {}
-
-try:
-    with open('/root/data/data.json') as f:
-        data = json.load(f)
-
-    if 'profiles' in data:
-        for d in data['profiles']:
-            if 'upi' in d:
-                data_dict[d['upi']] = d
-    else:
-        data_dict = data
-except Exception as e:
-    print("Unable to load data.json: ", e)
 
 @get('/')
 def default_get():
@@ -74,25 +51,13 @@ def compare_image():
         return {'error': 'Unable to decode posted image!'}
     try:
         start = time.time()
-        rep = getRep(image_data)
+        result = getPeople(image_data)
         print("Got face representation in {} seconds".format(time.time() - start))
+        return json.dumps(result, indent=4)
     except Exception as e:
         print("Error: {}".format(e))
         response.status = 500
         return {'error': str(e)}
-    ids_to_compare = request.params.get('ids_to_compare', reps.keys())
-    best = 4
-    bestUid = "unknown"
-    for i in ids_to_compare:
-        if type(reps[i]) is not list:
-            reps[i] = [reps[i]]
-        for r in reps[i]:
-            d = rep - r
-            dot = np.dot(d,d)
-            if dot < best:
-                best = dot
-                bestUid = i
-    return {"uid": bestUid, "confidence": 1 - best/4, "data": data_dict.get(bestUid)}
 
 port = int(os.environ.get('PORT', 8080))
 
