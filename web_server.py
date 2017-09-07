@@ -45,6 +45,7 @@ def compare_image():
     img_array = np.asarray(bytearray(binary_data), dtype=np.uint8)
     print("recieved image of size {}".format(len(img_array)))
     image_data = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+    response.content_type = 'application/json'
     if image_data is None:
         print("Unable to decode posted image!")
         response.status = 500
