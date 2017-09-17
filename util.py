@@ -20,10 +20,13 @@ net = openface.TorchNeuralNet(os.path.join(openfaceModelDir, 'nn4.small2.v1.t7')
 
 data_dict = {}
 
-with open("/root/data/data.pickle") as f:
-    start = time.time()
-    reps = pickle.load(f)
-    print("Loaded stored pickle, took {}".format(time.time() - start))
+try:
+    with open("/root/data/data.pickle") as f:
+        start = time.time()
+        reps = pickle.load(f)
+        print("Loaded stored pickle, took {}".format(time.time() - start))
+except Exception as e:
+    print("Unable to load data.pickle: ", e)
 
 try:
     with open('/root/data/data.json') as f:
@@ -37,6 +40,17 @@ try:
         data_dict = data
 except Exception as e:
     print("Unable to load data.json: ", e)
+
+def getRep(bgrImg, align=align, net=net):
+    rgbImg = cv2.cvtColor(bgrImg, cv2.COLOR_BGR2RGB)
+    bb = align.getLargestFaceBoundingBox(rgbImg)
+    if bb is None:
+        raise Exception("Unable to find a face")
+    alignedFace = align.align(96, rgbImg, bb, landmarkIndices=openface.AlignDlib.OUTER_EYES_AND_NOSE)
+    if alignedFace is None:
+        raise Exception("Unable to align image")
+    rep = net.forward(alignedFace)
+    return rep
 
 def getPeople(bgrImg, align=align, net=net):
     faces = []
